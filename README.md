@@ -30,10 +30,13 @@ Once the token is generated, create a config file in `/etc/sensu/conf.d` with th
 {
   "vault_config": {
     "token": "abcdea4-2543f-b12543-01221-f721fab128cdd",
-    "api_address": "https://<vault-api>:443"
+    "api_address": "https://<vault-api>:8086",
+    "verify_ca": "True"
   }
 } 
 ```
+
+`verify_ca` (optional) Either a boolean, in which case it controls whether to verify the server’s TLS certificate, or a string, in which case it must be a path to a CA bundle to use. Defaults to True.
 
 
 ## Usage
