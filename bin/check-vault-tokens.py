@@ -117,7 +117,8 @@ class VaultTokenExpire(SensuPluginCheck):
           "POST", 
           API_ENDPOINT['accessor_data'], 
           data=json.dumps(payload), 
-          headers=API_HEADER
+          headers=API_HEADER,
+          verify=is_verify_required()
         ).json()
 
       # ignore tokens that never expires, and those which is issued to ldap users autmatically
