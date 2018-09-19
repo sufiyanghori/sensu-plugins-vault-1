@@ -43,7 +43,8 @@ Once the token is generated, create a config file in `/etc/sensu/conf.d` with th
 
 Create a check file in `/etc/sensu/conf.d`,
 
-```{
+```
+{
   "checks": {
     "vault_token_expiry": {
       "command": "/opt/sensu/embedded/bin/check-vault-tokens.py -c 15",
