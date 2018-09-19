@@ -26,6 +26,7 @@ path "auth/token/lookup-accessor"
 Once the token is generated, create a config file in `/etc/sensu/conf.d` with the following content, replacing `token` and `api_address` with your own configuration:
 
 ```{
+{
   "vault_config": {
     "token": "abcdea4-2543f-b12543-01221-f721fab128cdd",
     "api_address": "https://<vault-api>:443"
