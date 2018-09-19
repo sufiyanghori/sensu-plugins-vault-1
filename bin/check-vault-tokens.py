@@ -45,25 +45,32 @@ class VaultTokenExpire(SensuPluginCheck):
       help='trigger critical alert when any token is expiring in this number of days'
     )
 
-    self.parser.add_argument(
-      "-v",
-      "--verify",
-      help='Either a boolean, in which case it controls whether it verifies TLS certificate, or a string, in which case it must be a path to a CA bundle to use. Defaults to True.'
-    )
-
-
   def run(self):
 
+    def read_config():
+        return utils.get_settings()['vault_config'] 
+
+    def is_verify_required():
+        if 'verify_ca' in read_config():
+            verify_val = read_config()['verify_ca'] 
+            if verify_val.lower() == "true":
+                return True
+            elif verify_val.lower() == "false":
+                return False
+            else:
+                return str(verify_val)
+        else:
+            return True
+
     self.check_name('vault_token_expire')
-    
-    VAULT_SERVER = utils.get_settings()['vault_config']['api_address']
+
     
     """ 
     token must have sudo,list access to auth/token/accessors,
     and update access to auth/token/lookup-accessor
     """
-    VAULT_AUTH_TOKEN = utils.get_settings()['vault_config']['token']
-
+    VAULT_AUTH_TOKEN = read_config()['token']
+    VAULT_SERVER = read_config()['api_address']
 
     """
     number of days before critical is fired
@@ -75,22 +82,22 @@ class VaultTokenExpire(SensuPluginCheck):
         'content-type': "application/json"
       }
 
-
     API_ENDPOINT = {
         "list_all_accessors": VAULT_SERVER + "/v1/auth/token/accessors", 
         "accessor_data": VAULT_SERVER + "/v1/auth/token/lookup-accessor"
       }
-    
+
+    """
+    use auth/token/accessors endpoint to get a list of all accessors
+    """
     read_accessors = requests.request(
         "LIST", 
         API_ENDPOINT['list_all_accessors'], 
         headers=API_HEADER,
+        verify=is_verify_required()
         ).json()
     
 
-    """
-    store list of all accessors
-    """
     get_accessors_keys = read_accessors['data']['keys']
     
     today = datetime.date.today()
