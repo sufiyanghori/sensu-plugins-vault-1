@@ -45,10 +45,17 @@ class VaultTokenExpire(SensuPluginCheck):
       help='trigger critical alert when any token is expiring in this number of days'
     )
 
+    self.parser.add_argument(
+      "-v",
+      "--verify",
+      help='Either a boolean, in which case it controls whether it verifies TLS certificate, or a string, in which case it must be a path to a CA bundle to use. Defaults to True.'
+    )
+
+
   def run(self):
 
     self.check_name('vault_token_expire')
-
+    
     VAULT_SERVER = utils.get_settings()['vault_config']['api_address']
     
     """ 
@@ -77,8 +84,8 @@ class VaultTokenExpire(SensuPluginCheck):
     read_accessors = requests.request(
         "LIST", 
         API_ENDPOINT['list_all_accessors'], 
-        headers=API_HEADER
-      ).json()
+        headers=API_HEADER,
+        ).json()
     
 
     """
