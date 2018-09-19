@@ -12,7 +12,8 @@ Checks for the validity of tokens in vault server through API.
 This plugin make use of vault accessors to get information about indiviual tokens.
 In order for this to work a token with following policies applied is required in vault, 
 
-```path "auth/token/accessors/*"
+```
+path "auth/token/accessors/*"
 {
   capabilities = ["sudo", "list"]
 }
