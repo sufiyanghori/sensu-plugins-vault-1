@@ -40,8 +40,9 @@ class VaultTokenExpire(SensuPluginCheck):
     self.parser.add_argument(
       "-c",
       "--critical",
-      required=True,
+      required=False,
       type=int,
+      default=10,
       help='trigger critical alert when any token is expiring in this number of days'
       )
 
@@ -57,8 +58,9 @@ class VaultTokenExpire(SensuPluginCheck):
       "-t",
       "--timeout",
       required=False,
+      type=float,
       default=None,
-      help='How many seconds to wait for the server to send data before giving up'
+      help='seconds to wait for the server to send data before giving up'
       )
 
   def run(self): 
@@ -102,7 +104,8 @@ class VaultTokenExpire(SensuPluginCheck):
         "LIST", 
         API_ENDPOINT['list_all_accessors'], 
         headers=API_HEADER,
-        verify=verify_flag()
+        verify=verify_flag(),
+        timeout=self.options.timeout
         ).json()
     
 
@@ -126,7 +129,8 @@ class VaultTokenExpire(SensuPluginCheck):
           API_ENDPOINT['accessor_data'], 
           data=json.dumps(payload), 
           headers=API_HEADER,
-          verify=verify_flag()
+          verify=verify_flag(),
+          timeout=self.options.timeout
         ).json()
 
       # ignore tokens that never expires, and those which is issued to ldap users autmatically
