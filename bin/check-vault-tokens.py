@@ -58,9 +58,19 @@ class VaultTokenExpire(SensuPluginCheck):
       "--timeout",
       required=False,
       type=float,
-      default=None,
-      help='seconds to wait for the server to send data before giving up, default is None which means no timeout'
+      default=30,
+      help='seconds to wait for the server to send data before giving up. Default is 30'
       )
+
+    self.parser.add_argument(
+      "-i",
+      "--ignore",
+      required=False,
+      action='append',
+      default=[''],
+      help='token with these prefix will be ignored. For example, -i ldap- -i certs-'
+      )
+
 
   def run(self): 
 
@@ -74,6 +84,7 @@ class VaultTokenExpire(SensuPluginCheck):
         return self.options.verify
     
     read_config = utils.get_settings()['vault_config'] 
+
     """ 
     token must have sudo,list access to auth/token/accessors,
     and update access to auth/token/lookup-accessor
@@ -114,9 +125,7 @@ class VaultTokenExpire(SensuPluginCheck):
     
     tokens_ok = []
     tokens_critical = []
-    
     tokens_dict = {}
-    
     payload = {}
     
     for accessor in get_accessors_keys:
@@ -132,21 +141,31 @@ class VaultTokenExpire(SensuPluginCheck):
           timeout=self.options.timeout
         ).json()
 
-      # ignore tokens that never expires, and those which is issued to ldap users autmatically
-      if get_accessor_details['data']['expire_time'] is not None and get_accessor_details['data']['display_name'][:4] != 'ldap' :
-        
-        str_to_date = dateutil.parser.parse(get_accessor_details['data']['expire_time'])
+      """
+      Check for each accessor, ignore token which has no ttl (token with root policy)
+      
+      """
+      accessor_temp = get_accessor_details['data'] 
+      if (accessor_temp['expire_time'] is None or
+              accessor_temp['display_name'].split('-')[0] in self.options.ignore):
+        continue
+      else:
+        str_to_date = dateutil.parser.parse(accessor_temp['expire_time'])
         days_left = str_to_date.date() - today
+        tokens_dict['name'] = accessor_temp['display_name']
         tokens_dict['days_left'] = days_left.days
-        tokens_dict['name'] = get_accessor_details['data']['display_name']
 
-        if '-' not in tokens_dict['name']:
-          tokens_dict['name'] = tokens_dict['name'] + "-" + get_accessor_details['data']['accessor'][:7]
-    
-        if days_left.days >= THRESHOLD_CRITICAL:
-          tokens_ok.append(tokens_dict.copy())
-        else:
+        """
+        append first 7 characters of accessor to the token
+        if token has no name. This will help identify the token
+        """
+        if tokens_dict['name'][:6] in 'token ':
+            tokens_dict['name'] = tokens_dict['name'] + "-" + accessor_temp['accessor'][:7]
+        
+        if days_left.days <= THRESHOLD_CRITICAL:
           tokens_critical.append(tokens_dict.copy())
+        else:
+          tokens_ok.append(tokens_dict.copy())
 
     message = [] 
     if tokens_critical:
