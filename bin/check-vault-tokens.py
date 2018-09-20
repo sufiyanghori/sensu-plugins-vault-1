@@ -42,11 +42,7 @@ class VaultTokenExpire(SensuPluginCheck):
       required=False,
       type=int,
       default=10,
-<<<<<<< Updated upstream
-      help='trigger critical alert when any token is expiring in this number of days'
-=======
       help='trigger critical alert when any token is expiring in this number of days. Default is 10'
->>>>>>> Stashed changes
       )
 
     self.parser.add_argument(
@@ -54,11 +50,7 @@ class VaultTokenExpire(SensuPluginCheck):
       "--verify",
       required=False,
       default="True",
-<<<<<<< Updated upstream
-      help='Either a boolean, in which case it controls whether to verify the server\'s TLS, or a string, in which case it must be a path to a CA bundle to use. Defaults to True.'
-=======
       help='Either a boolean, in which case it controls whether to verify the server\'s TLS, or a string, in which case it must be a path to a CA bundle in pem format. Defaults to True.'
->>>>>>> Stashed changes
       )
 
     self.parser.add_argument(
@@ -67,11 +59,7 @@ class VaultTokenExpire(SensuPluginCheck):
       required=False,
       type=float,
       default=None,
-<<<<<<< Updated upstream
-      help='seconds to wait for the server to send data before giving up'
-=======
       help='seconds to wait for the server to send data before giving up, default is None which means no timeout'
->>>>>>> Stashed changes
       )
 
   def run(self): 
