@@ -14,7 +14,6 @@
 #   gem: sensu_plugin
 #
 # USAGE:
-#     # RED
 #
 # NOTES:
 #
@@ -43,7 +42,11 @@ class VaultTokenExpire(SensuPluginCheck):
       required=False,
       type=int,
       default=10,
+<<<<<<< Updated upstream
       help='trigger critical alert when any token is expiring in this number of days'
+=======
+      help='trigger critical alert when any token is expiring in this number of days. Default is 10'
+>>>>>>> Stashed changes
       )
 
     self.parser.add_argument(
@@ -51,7 +54,11 @@ class VaultTokenExpire(SensuPluginCheck):
       "--verify",
       required=False,
       default="True",
+<<<<<<< Updated upstream
       help='Either a boolean, in which case it controls whether to verify the server\'s TLS, or a string, in which case it must be a path to a CA bundle to use. Defaults to True.'
+=======
+      help='Either a boolean, in which case it controls whether to verify the server\'s TLS, or a string, in which case it must be a path to a CA bundle in pem format. Defaults to True.'
+>>>>>>> Stashed changes
       )
 
     self.parser.add_argument(
@@ -60,7 +67,11 @@ class VaultTokenExpire(SensuPluginCheck):
       required=False,
       type=float,
       default=None,
+<<<<<<< Updated upstream
       help='seconds to wait for the server to send data before giving up'
+=======
+      help='seconds to wait for the server to send data before giving up, default is None which means no timeout'
+>>>>>>> Stashed changes
       )
 
   def run(self): 
@@ -148,15 +159,16 @@ class VaultTokenExpire(SensuPluginCheck):
           tokens_ok.append(tokens_dict.copy())
         else:
           tokens_critical.append(tokens_dict.copy())
-    
+
+    message = [] 
     if tokens_critical:
       for token in tokens_critical:
-        print (token['name'] + " expiring in " + str(token['days_left']) + " day(s)," )
-      sys.exit(2)
+        message.append(token['name'] + " expiring in " + str(token['days_left']) + " day(s)," )
+      self.critical('\n'.join(message))
     else:
       for token in tokens_ok:
-        print (token['name'] + " expiring in " + str(token['days_left']) + " day(s)," )
-      sys.exit(0)
+        message.append(token['name'] + " expiring in " + str(token['days_left']) + " day(s)," )
+      self.ok('\n'.join(message))
 
 if __name__ == "__main__":
   f = VaultTokenExpire()
