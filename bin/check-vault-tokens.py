@@ -43,35 +43,43 @@ class VaultTokenExpire(SensuPluginCheck):
       required=True,
       type=int,
       help='trigger critical alert when any token is expiring in this number of days'
-    )
+      )
 
-  def run(self):
+    self.parser.add_argument(
+      "-v",
+      "--verify",
+      required=False,
+      default="True",
+      help='Either a boolean, in which case it controls whether to verify the server\'s TLS, or a string, in which case it must be a path to a CA bundle to use. Defaults to True.'
+      )
 
-    def read_config():
-        return utils.get_settings()['vault_config'] 
+    self.parser.add_argument(
+      "-t",
+      "--timeout",
+      required=False,
+      default=None,
+      help='How many seconds to wait for the server to send data before giving up'
+      )
 
-    def is_verify_required():
-        if 'verify_ca' in read_config():
-            verify_val = read_config()['verify_ca'] 
-            if verify_val.lower() == "true":
-                return True
-            elif verify_val.lower() == "false":
-                return False
-            else:
-                return str(verify_val)
-        else:
-            return True
+  def run(self): 
 
     self.check_name('vault_token_expire')
 
+    def verify_flag():
+      flag = {'true': True, 'false': False}
+      if self.options.verify.lower() in flag:
+        return flag[self.options.verify.lower()]
+      else:
+        return self.options.verify
     
+    read_config = utils.get_settings()['vault_config'] 
     """ 
     token must have sudo,list access to auth/token/accessors,
     and update access to auth/token/lookup-accessor
     """
-    VAULT_AUTH_TOKEN = read_config()['token']
-    VAULT_SERVER = read_config()['api_address']
-
+    VAULT_AUTH_TOKEN = read_config['token']
+    VAULT_SERVER = read_config['api_address']
+    
     """
     number of days before critical is fired
     """
@@ -94,7 +102,7 @@ class VaultTokenExpire(SensuPluginCheck):
         "LIST", 
         API_ENDPOINT['list_all_accessors'], 
         headers=API_HEADER,
-        verify=is_verify_required()
+        verify=verify_flag()
         ).json()
     
 
@@ -118,7 +126,7 @@ class VaultTokenExpire(SensuPluginCheck):
           API_ENDPOINT['accessor_data'], 
           data=json.dumps(payload), 
           headers=API_HEADER,
-          verify=is_verify_required()
+          verify=verify_flag()
         ).json()
 
       # ignore tokens that never expires, and those which is issued to ldap users autmatically
