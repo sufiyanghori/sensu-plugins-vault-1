@@ -56,9 +56,9 @@ Create a check file in `/etc/sensu/conf.d`,
 ```
 
 
-| Flag            | usage          | 
+| Optional Flag            | Usage          | 
 | ---             | ---            |
 | -c, --critical     | trigger critical alert when any token is expiring in this number of days. Default is 10 | 
 | -v, --verify       | Either a boolean, in which case it controls whether to verify the server's TLS, or a string, in which case it must be a path to a CA bundle in pem format. Defaults to True. |
-| -t, --timeout      | seconds to wait for the server to send data before giving up. Default is 30. |  
-| -i, --ignore       | token with these prefix will be ignored. For example, for example -i ldap- -i auth- (must include `-`)|                        
+| -t, --timeout      | Seconds to wait for the server to send data before giving up. Default is 30. |  
+| -i, --ignore       | Token with these prefix will be ignored. For example, for example -i ldap- -i auth- (must include `-`)|                        
