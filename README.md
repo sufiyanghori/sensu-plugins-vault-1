@@ -109,4 +109,4 @@ Create a check file in `/etc/sensu/conf.d`,
                    
 ## Notes
 
-`pyOpenSSL` mode needs to installed for `check-vault-se-pki` to work.
+`pyOpenSSL` package needs to installed for `check-vault-se-pki` to work.
