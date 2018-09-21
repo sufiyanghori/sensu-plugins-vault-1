@@ -2,15 +2,16 @@
 
 ## Functionality
 
-Checks for the validity of tokens in vault server through API.
+Check for validity of credentials and tokens for HashiCorp Vault's various [Auth Methods](https://www.vaultproject.io/docs/auth/index.html) and [Secret Engines](https://www.vaultproject.io/docs/secrets/index.html).
 
 ## Files
   * bin/check-vault-tokens.py
 
 ## Installation
 
-`check-vault-tokens` plugin make use of vault accessors to get information about indiviual tokens.
-In order for this to work a token with following policies applied is required in vault, 
+#### check-vault-am-tokens
+`check-vault-tokens` plugin make use of vault accessors to get information about indiviual tokens and then check for their expiry.
+In order for it to work a token with following policies applied is required in vault, 
 
 ```
 path "auth/token/accessors/*"
@@ -24,13 +25,26 @@ path "auth/token/lookup-accessor"
 }
 ```
 
-Once the token is generated, create a config file under `/etc/sensu/conf.d` with the following content, replacing `token` and `api_address` with your own configuration:
+#### check-vault-se-pki
+
+This check check for the validity of certificates issued by [PKI Secret Engine](https://www.vaultproject.io/docs/secrets/pki/index.html). For it to work, following policy must also be applied to a token,
+
+```
+path "pki/certs/*"
+{
+  capabilities = ["list"]
+}
+```
+
+---
+Once the token is generated with above policies applied, create a config file under `/etc/sensu/conf.d` with the following content, replacing `token`, `api_address` and `pki_engine` (only required if you are using `check-vault-se-pki`) with your own configuration:
 
 ```{
 {
   "vault_config": {
     "token": "abcdea4-2543f-b12543-01221-f721fab128cdd",
     "api_address": "https://<vault-api>:8086",
+    "pki_engine": "<pki-engine-name>"
   }
 } 
 ```
@@ -38,13 +52,15 @@ Once the token is generated, create a config file under `/etc/sensu/conf.d` with
 
 ## Usage
 
+#### check-vault-am-tokens
+
 Create a check file in `/etc/sensu/conf.d`,
 
 ```
 {
   "checks": {
     "vault_token_expiry": {
-      "command": "/opt/sensu/embedded/bin/check-vault-tokens.py -c 15",
+      "command": "<path-to-check>",
       "interval": 5,
       "subscribers": [
         "CentOS"
@@ -62,3 +78,35 @@ Create a check file in `/etc/sensu/conf.d`,
 | -v, --verify       | Either a boolean, in which case it controls whether to verify the server's TLS, or a string, in which case it must be a path to a CA bundle in pem format. Defaults to True. |
 | -t, --timeout      | Seconds to wait for the server to send data before giving up. Default is 30. |  
 | -i, --ignore       | Token with these prefix will be ignored, for example `-i ldap- -i auth-` (- suffix required)|                        
+
+
+#### check-vault-se-pki
+
+Create a check file in `/etc/sensu/conf.d`,
+
+```
+{
+  "checks": {
+    "vault_token_expiry": {
+      "command": "<path-to-check>",
+      "interval": 5,
+      "subscribers": [
+        "CentOS"
+      ],
+      "standalone": true
+    }
+  }
+}
+```
+
+
+| Optional Flag            | Usage          | 
+| ---             | ---            |
+| -c, --critical     | Critical will be triggered if certificates have been expired + these number of days are left to expire. Default is 5 | 
+| -w, --warn         | Warn will be triggered if these number of days are left to expire. |
+| -v, --verify       | Either a boolean, in which case it controls whether to verify the server's TLS, or a string, in which case it must be a path to a CA bundle in pem format. Defaults to True. |
+| -t, --timeout      | Seconds to wait for the server to send data before giving up. Default is 40. |  
+                   
+## Notes
+
+`pyOpenSSL` mode needs to installed for `check-vault-se-pki` to work.
