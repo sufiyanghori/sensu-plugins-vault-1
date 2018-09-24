@@ -29,7 +29,6 @@ from sensu_plugin import utils
 import requests
 import sys
 import json
-import dateutil.parser
 import datetime
 
 class VaultTokenExpire(SensuPluginCheck):
@@ -107,7 +106,6 @@ class VaultTokenExpire(SensuPluginCheck):
         "accessor_data": VAULT_SERVER + "/v1/auth/token/lookup-accessor"
       }
 
-   
     """
     Creating a session so it can be reuse underlying TCP connection for every request.
     """
@@ -118,17 +116,14 @@ class VaultTokenExpire(SensuPluginCheck):
     """
     use auth/token/accessors endpoint to get a list of all accessors
     """
- 
     read_accessors = session.request(
-        "LIST",
+        "LIST", 
         API_ENDPOINT['list_all_accessors'], 
         timeout=self.options.timeout
         ).json()
     
 
     get_accessors_keys = read_accessors['data']['keys']
-    
-    today = datetime.date.today()
     
     tokens_ok = []
     tokens_critical = []
@@ -155,8 +150,10 @@ class VaultTokenExpire(SensuPluginCheck):
               accessor_temp['display_name'].split('-')[0] in self.options.ignore):
         continue
       else:
-        str_to_date = dateutil.parser.parse(accessor_temp['expire_time'])
-        days_left = str_to_date.date() - today
+        today = datetime.datetime.today()
+        dformat =  "%Y-%m-%dT%H:%M:%S"
+        date_time = datetime.datetime.strptime(accessor_temp['expire_time'][:19],  dformat)
+        days_left = date_time-today
         tokens_dict['name'] = accessor_temp['display_name']
         tokens_dict['days_left'] = days_left.days
 
