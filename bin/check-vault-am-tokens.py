@@ -29,6 +29,7 @@ from sensu_plugin import utils
 import requests
 import sys
 import json
+import dateutil.parser
 import datetime
 
 class VaultTokenExpire(SensuPluginCheck):
@@ -106,19 +107,28 @@ class VaultTokenExpire(SensuPluginCheck):
         "accessor_data": VAULT_SERVER + "/v1/auth/token/lookup-accessor"
       }
 
+   
+    """
+    Creating a session so it can be reuse underlying TCP connection for every request.
+    """
+    session = requests.Session()
+    session.headers=API_HEADER
+    session.verify=verify_flag()
+
     """
     use auth/token/accessors endpoint to get a list of all accessors
     """
-    read_accessors = requests.request(
-        "LIST", 
+ 
+    read_accessors = session.request(
+        "LIST",
         API_ENDPOINT['list_all_accessors'], 
-        headers=API_HEADER,
-        verify=verify_flag(),
         timeout=self.options.timeout
         ).json()
     
 
     get_accessors_keys = read_accessors['data']['keys']
+    
+    today = datetime.date.today()
     
     tokens_ok = []
     tokens_critical = []
@@ -129,12 +139,10 @@ class VaultTokenExpire(SensuPluginCheck):
       
       payload["accessor"] = accessor
 
-      get_accessor_details = requests.request(
+      get_accessor_details = session.request(
           "POST", 
           API_ENDPOINT['accessor_data'], 
           data=json.dumps(payload), 
-          headers=API_HEADER,
-          verify=verify_flag(),
           timeout=self.options.timeout
         ).json()
 
@@ -147,10 +155,8 @@ class VaultTokenExpire(SensuPluginCheck):
               accessor_temp['display_name'].split('-')[0] in self.options.ignore):
         continue
       else:
-	today = datetime.datetime.today()
-        dformat =  "%Y-%m-%dT%H:%M:%S.%f"
-        date_time = datetime.datetime.strptime(accessor_temp['expire_time'][:-4],  dformat)
-        days_left = date_time-today
+        str_to_date = dateutil.parser.parse(accessor_temp['expire_time'])
+        days_left = str_to_date.date() - today
         tokens_dict['name'] = accessor_temp['display_name']
         tokens_dict['days_left'] = days_left.days
 
