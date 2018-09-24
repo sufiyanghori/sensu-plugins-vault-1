@@ -76,13 +76,19 @@ class VaultCertExpire(SensuPluginCheck):
         'x-vault-token': vault_conf.auth_token, 
         'content-type': "application/json"
       }
+    
+    """
+    Creating a session so it can be reuse underlying TCP connection for every request.
+    """
+    session = requests.Session()
+    session.headers=API_HEADER
+    session.verify=verify_flag()
+
 
     certs_api = "{}/v1/{}/certs?list=true".format(vault_conf.url, vault_conf.role)
-    cert_serials = requests.request(
+    cert_serials = session.request(
         "GET", 
         certs_api, 
-        headers=API_HEADER,
-        verify=verify_flag(),
         timeout=self.options.timeout
         ).json()
 
@@ -103,11 +109,9 @@ class VaultCertExpire(SensuPluginCheck):
     for serial in list_serials:
       cert_url = "{}/v1/{}/cert/{}".format(vault_conf.url, vault_conf.role, serial)
       
-      cert_body = requests.request(
+      cert_body = session.request(
           "GET", 
           cert_url, 
-          headers=API_HEADER,
-          verify=verify_flag(),
           timeout=self.options.timeout
           ).json()['data']['certificate']
 
