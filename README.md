@@ -68,7 +68,7 @@ Create a check file in `/etc/sensu/conf.d`,
 ```
 {
   "checks": {
-    "vault_token_expiry": {
+    "vault_certs_expiry": {
       "command": "<path-to-check>",
       "interval": 5,
       "subscribers": [
