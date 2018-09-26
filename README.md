@@ -12,8 +12,8 @@ Check for validity of credentials and tokens for HashiCorp Vault's various [Auth
 
 ## Requirements
 
-`sensu_plugin` python package is required for any plugin to work.
-`pyOpenSSL` package needs to be installed for `check-vault-se-pki` to work.
+  * `sensu_plugin` python package is required to be installed for checks to work.
+  * `pyOpenSSL` python package needs to be installed for `check-vault-se-pki` to work.
 
 
 ## Installation
