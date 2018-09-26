@@ -5,7 +5,16 @@
 Check for validity of credentials and tokens for HashiCorp Vault's various [Auth Methods](https://www.vaultproject.io/docs/auth/index.html) and [Secret Engines](https://www.vaultproject.io/docs/secrets/index.html).
 
 ## Files
-  * bin/check-vault-tokens.py
+  * bin/check-vault-am-tokens.py
+  * bin/check-vault-am-tokens.rb
+  * bin/check-vault-se-pki.py
+  * bin/check-vault-se-pki.rb
+
+## Requirements
+
+`sensu_plugin` python package is required for any plugin to work.
+`pyOpenSSL` package needs to be installed for `check-vault-se-pki` to work.
+
 
 ## Installation
 
@@ -107,6 +116,3 @@ Create a check file in `/etc/sensu/conf.d`,
 | -v, --verify       | Either a boolean, in which case it controls whether to verify the server's TLS, or a string, in which case it must be a path to a CA bundle in pem format. Defaults to True. |
 | -t, --timeout      | Seconds to wait for the server to send data before giving up. Default is 40. |  
                    
-## Notes
-
-`pyOpenSSL` package needs to installed for `check-vault-se-pki` to work.
