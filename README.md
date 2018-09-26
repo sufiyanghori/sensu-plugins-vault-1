@@ -39,7 +39,7 @@ path "auth/token/lookup-accessor"
 This check check for the validity of certificates issued by [PKI Secret Engine](https://www.vaultproject.io/docs/secrets/pki/index.html). For it to work, following policy must also be applied to a token,
 
 ```
-path "pki/certs/*"
+path "<pki-engine-name>/certs/*"
 {
   capabilities = ["list"]
 }
